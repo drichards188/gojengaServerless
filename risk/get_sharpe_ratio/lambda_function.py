@@ -25,7 +25,7 @@ def lambda_handler(event, context):
         cursor = connection.cursor()
         table_name = "sharpe_calc"
 
-        stmt = f"SELECT * FROM {table_name} WHERE symbol = '{symbol}';"
+        stmt = f"SELECT * FROM {table_name} WHERE symbol = '{symbol.upper()}';"
         cursor.execute(stmt)
         results = cursor.fetchall()
 
