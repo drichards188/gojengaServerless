@@ -23,17 +23,16 @@ def lambda_handler(event, context):
     try:
         connection = mysql.connector.connect(**config)
         cursor = connection.cursor()
-        table_name = "sharpe_calc"
+        table_name = "exchange_symbols"
 
-        stmt = f"SELECT * FROM {table_name} WHERE symbol = '{symbol.upper()}';"
+        stmt = f"SELECT exchange FROM {table_name} WHERE symbol = '{symbol.upper()}';"
         cursor.execute(stmt)
         results = cursor.fetchall()
 
-
-        pretty_results = []
+        pretty_results = {}
 
         for item in results:
-            pretty_results.append(item)
+            pretty_results["exchange"] = item[0]
 
         print(f"results are {pretty_results}")
 
