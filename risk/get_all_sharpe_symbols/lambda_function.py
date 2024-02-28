@@ -9,7 +9,7 @@ def lambda_handler(event, context):
         url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
         response: requests.Response = requests.post(url, json={
-            "query": "SELECT exchange FROM exchange_symbols WHERE symbol = 'AAPL';",
+            "query": "SELECT symbol FROM sharpe_calc;",
             "token": os.environ['TOKEN']
         })
 
