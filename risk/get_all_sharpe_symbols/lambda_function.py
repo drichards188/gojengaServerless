@@ -1,37 +1,23 @@
 import json
-
+import requests
 import mysql.connector
 import os
 
 
 def lambda_handler(event, context):
-    # Connection configuration
-    config = {
-        'user': os.environ['DB_USER'],
-        'password': os.environ['DB_PASSWORD'],
-        'host': os.environ['DB_HOST'],
-        'database': os.environ['DB_NAME'],
-        'raise_on_warnings': True
-    }
-
     try:
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-        table_name = "spdr_calculations"
+        url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
-        stmt = f"SELECT symbol FROM {table_name};"
-        cursor.execute(stmt)
-        results = cursor.fetchall()
-        pretty_results = []
+        response: requests.Response = requests.post(url, json={
+            "query": "SELECT symbol FROM sharpe_calc;",
+            "token": os.environ['TOKEN']
+        })
 
-        for item in results:
-            pretty_results.append(item[0])
+        if response.status_code != 200:
+            print(f"Error: {response.status_code}")
+            return {"msg": "Error: {response['status_code']}"}
 
-        print(f"results are {pretty_results}")
-
-        # Clean up
-        cursor.close()
-        connection.close()
+        data = response.json()
 
         return {
             'statusCode': 200,
@@ -40,8 +26,9 @@ def lambda_handler(event, context):
                 "Access-Control-Allow-Headers": 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token, Is-Test',
                 "Access-Control-Allow-Methods": "*"
             },
-            'body': json.dumps(pretty_results)
+            'body': json.dumps(data['result'])
         }
+
     except mysql.connector.Error as e:
         print(f"Database connection failed: {e}")
         return {
