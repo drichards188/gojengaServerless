@@ -62,6 +62,8 @@ def lambda_handler(event, context):
             for item in results:
                 pretty_results.append(item[0])
 
+        print(f"--> pretty_results are {pretty_results}")
+
         # Clean up
         cursor.close()
         connection.close()

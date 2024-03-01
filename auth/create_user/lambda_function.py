@@ -11,8 +11,12 @@ def lambda_handler(event, context):
         username = body["username"]
         password = body["password"]
 
+        print(f"---> username: {username} password: {password}")
+
         hashed_password = hash_password(password)
         str_password = hashed_password.decode('utf-8')
+
+        print("--> password hashed")
 
         url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
@@ -23,6 +27,8 @@ def lambda_handler(event, context):
             "token": os.environ['TOKEN']
         })
 
+        print("--> response received")
+
         if response.status_code != 200:
             print(f"Error: {response.status_code}")
             return {"msg": "Error: {response['status_code']}"}
@@ -31,6 +37,8 @@ def lambda_handler(event, context):
             data = {"result": "User created"}
         else:
             data = response.json()
+
+        print(f"--> data is {data}")
 
         return {
             'statusCode': 200,

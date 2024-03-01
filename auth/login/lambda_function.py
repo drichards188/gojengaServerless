@@ -5,6 +5,7 @@ import requests
 import os
 import jwt
 
+
 def lambda_handler(event, context):
     try:
         body = json.loads(event["body"])
@@ -14,8 +15,10 @@ def lambda_handler(event, context):
 
         url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
+        query = f"SELECT username, password FROM app_users WHERE username='{username}';"
+
         response: requests.Response = requests.post(url, json={
-            "query": "SELECT username, password FROM users WHERE username='drichards';",
+            "query": query,
             "token": os.environ['TOKEN']
         })
 

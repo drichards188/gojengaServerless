@@ -4,3 +4,7 @@
 /risk/get_all_sharpe_symbols/package/
 /risk/get_exchange/my_deployment_package.zip
 /misc/db_proxy/my_deployment_package.zip
+/auth/create_user/my_deployment_package.zip
+/auth/create_user/package/
+/misc/db_proxy/package/
+/auth/login/my_deployment_package.zip
