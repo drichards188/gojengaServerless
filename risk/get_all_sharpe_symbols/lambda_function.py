@@ -1,6 +1,5 @@
 import json
 import requests
-import mysql.connector
 import os
 
 
@@ -29,14 +28,6 @@ def lambda_handler(event, context):
             'body': json.dumps(data['result'])
         }
 
-    except mysql.connector.Error as e:
-        print(f"Database connection failed: {e}")
-        return {
-            'statusCode': 500,
-            'headers': {
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Headers": "Content-Type",
-                "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
-            },
-            'body': "Database connection failed"
-        }
+    except Exception as e:
+        print(f"Error: {e}")
+        return {"msg": f"Error: {e}"}

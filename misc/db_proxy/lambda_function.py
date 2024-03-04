@@ -33,9 +33,23 @@ def lambda_handler(event, context):
     # Connect to the database
     try:
         connection = mysql.connector.connect(**config)
+
+        query_verb = query.split(" ")[0].upper()
+
+        if query_verb == 'INSERT':
+            # if insert query special execution function
+            exec_response = execute_insert_query(connection, query)
+
+            if exec_response:
+                return {
+                    'statusCode': 200,
+                    'body': "Query executed successfully"
+                }
+
         cursor = connection.cursor()
 
         stmt = f"{query}"
+
         cursor.execute(stmt)
         results = cursor.fetchall()
 
@@ -44,10 +58,11 @@ def lambda_handler(event, context):
             pretty_results["result"] = results[0]
         else:
             pretty_results = []
+            print(f"results are {results}")
             for item in results:
                 pretty_results.append(item[0])
 
-        print(f"results are {pretty_results}")
+        print(f"--> pretty_results are {pretty_results}")
 
         # Clean up
         cursor.close()
@@ -67,3 +82,21 @@ def lambda_handler(event, context):
             'statusCode': 500,
             'body': "Database connection failed"
         }
+
+
+def execute_insert_query(connection, query):
+    try:
+        cursor = connection.cursor()
+
+        # Execute the query
+        cursor.execute(query)
+
+        # Commit the transaction
+        connection.commit()
+
+        # Close the cursor
+        cursor.close()
+        return True
+    except Exception as e:
+        print(f"Error: {e}")
+        return False
