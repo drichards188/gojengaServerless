@@ -12,17 +12,25 @@ logging.basicConfig(level=logging.INFO)
 
 
 def lambda_handler(event, context):
-    if "body" in event and "query" in event and "token" in event:
+    if "body" in event:
         body = json.loads(event["body"])
-        query = body["query"]
-        user_token = body["token"]
 
-    if "params" in event:
-        params = event["params"]
+        if "query" in body and "token" in body:
+            query = body["query"]
+            client_token = body["token"]
+        else:
+            api_response = generate_response(400, {"msg": "Bad request. Missing reqs"})
+            return api_response
     else:
-        params = None
+        api_response = generate_response(400, {"msg": "Bad request. Missing body"})
+        return api_response
 
-    if user_token != base_token:
+    if "params" in body:
+        params = body["params"]
+    else:
+        logging.critical("No params in body")
+
+    if client_token != base_token:
         api_response = generate_response(401, {"msg": "Token unauthorized"})
         return api_response
 
@@ -50,15 +58,27 @@ def lambda_handler(event, context):
             if exec_response:
                 api_response = generate_response(200, {"msg": "Query executed successfully"})
                 return api_response
+        elif params == []:
+            cursor = connection.cursor()
 
-        cursor = connection.cursor()
+            cursor.execute(query)
+            results = cursor.fetchall()
+        else:
+            cursor = connection.cursor()
 
-        cursor.execute(query, params)
-        results = cursor.fetchall()
+            cursor.execute(query, params)
+            results = cursor.fetchall()
 
-        if len(results) == 1:
+        if len(results) > 1:
+            pretty_results = []
+            print(f"results are {results}")
+            for item in results:
+                pretty_results.append(item[0])
+        elif type(results[0]) == tuple and len(results[0]) > 1:
+            pretty_results = results[0]
+        elif len(results[0]) == 1:
             pretty_results = {}
-            pretty_results["result"] = results[0]
+            pretty_results["db_result"] = results[0][0]
         else:
             pretty_results = []
             print(f"results are {results}")

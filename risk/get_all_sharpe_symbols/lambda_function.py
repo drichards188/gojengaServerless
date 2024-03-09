@@ -15,6 +15,7 @@ def lambda_handler(event, context):
 
         response: requests.Response = requests.post(url, json={
             "query": "SELECT symbol FROM sharpe_calc;",
+            "params": [],
             "token": os.environ['TOKEN']
         })
 

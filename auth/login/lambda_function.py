@@ -21,10 +21,11 @@ def lambda_handler(event, context):
 
         url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
-        query = f"SELECT username, password FROM app_users WHERE username='{username}';"
+        query = "SELECT username, password FROM app_users WHERE username=%s;"
 
         response: requests.Response = requests.post(url, json={
             "query": query,
+            "params": [username],
             "token": os.environ['TOKEN']
         })
 
@@ -34,6 +35,8 @@ def lambda_handler(event, context):
             return api_response
 
         data = response.json()
+
+        logging.info(f"data is {data}")
 
         db_password = data['result'][1]
 
@@ -45,6 +48,7 @@ def lambda_handler(event, context):
         if is_valid:
             api_response = generate_response(200, {
                 "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+                "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
                 "token_type": "bearer"})
             return api_response
         else:
