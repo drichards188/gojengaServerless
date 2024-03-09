@@ -60,35 +60,26 @@ def lambda_handler(event, context):
         return {"msg": f"Error: {e}"}
 
 
-def hash_password(password: str, phrase: str):
-    # Convert the password and phrase to bytes
-    password = password.encode('utf-8')
-    phrase = phrase.encode('utf-8')
-
-    # Generate the salt using the phrase
-    salt = bcrypt.gensalt(prefix=b"2b", rounds=12, salt=phrase)
-
-    # Hash the password using the salt
-    hashed_password = bcrypt.hashpw(password, salt)
-
-    return hashed_password
-
 
 def generate_access_token(user_id: str, secret_key: str):
-    # Define the expiration time for the token
-    expiration_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
+    try:
+        # Define the expiration time for the token
+        expiration_time = datetime.datetime.utcnow() + datetime.timedelta(minutes=30)
 
-    # Define the payload of the token
-    payload = {
-        'sub': user_id,  # subject of the token
-        'iat': datetime.datetime.utcnow(),  # issued at
-        'exp': expiration_time  # expiration time
-    }
+        # Define the payload of the token
+        payload = {
+            'sub': user_id,  # subject of the token
+            'iat': datetime.datetime.utcnow(),  # issued at
+            'exp': expiration_time  # expiration time
+        }
 
-    # Encode the payload to generate the JWT
-    token = jwt.encode(payload, secret_key, algorithm='HS256')
+        # Encode the payload to generate the JWT
+        token = jwt.encode(payload, secret_key, algorithm='HS256')
 
-    return token.decode('utf-8')
+        return token.decode('utf-8')
+    except Exception as e:
+        logging.error(f"Error generate_access_token: {e}")
+        return None
 
 
 def generate_response(status_code: int, body: dict, headers: dict = None) -> dict:

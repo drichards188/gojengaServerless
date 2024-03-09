@@ -14,7 +14,6 @@ def lambda_handler(event, context):
 
     logging.info(f"symbol is {symbol}")
 
-
     try:
         url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
