@@ -27,6 +27,8 @@ def lambda_handler(event, context):
         cursor = connection.cursor()
         table_name = "sharpe_calc"
 
+        # todo convert to proxy and check what happens on failure to put in cypress test
+
         stmt = f"SELECT sharpe_ratio FROM {table_name} WHERE symbol = '{symbol.upper()}';"
         cursor.execute(stmt)
         results = cursor.fetchall()
