@@ -56,9 +56,9 @@ def lambda_handler(event, context):
             return api_response
 
     except Exception as e:
-        print(f"Error: {e}")
-        return {"msg": f"Error: {e}"}
-
+        logging.error(f"Error: {e}")
+        api_response = generate_response(500, {"msg": f"Error: {e}"})
+        return api_response
 
 
 def generate_access_token(user_id: str, secret_key: str):
