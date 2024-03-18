@@ -1,52 +1,58 @@
 import json
-
+import logging
 import mysql.connector
 import os
 
+import requests
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+
 
 def lambda_handler(event, context):
-
     symbol = event["pathParameters"]["symbol"]
 
-    print(f"symbol is {symbol}")
+    logging.info(f"symbol is {symbol}")
 
-    # Connection configuration
-    config = {
-        'user': os.environ['DB_USER'],
-        'password': os.environ['DB_PASSWORD'],
-        'host': os.environ['DB_HOST'],
-        'database': os.environ['DB_NAME'],
-        'raise_on_warnings': True
-    }
-
-    # Connect to the database
     try:
-        connection = mysql.connector.connect(**config)
-        cursor = connection.cursor()
-        table_name = "exchange_symbols"
+        url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
-        stmt = f"SELECT exchange FROM {table_name} WHERE symbol = '{symbol.upper()}';"
-        cursor.execute(stmt)
-        results = cursor.fetchall()
+        query = f"SELECT exchange FROM exchange_symbols WHERE symbol = %s;"
 
-        pretty_results = {}
+        response: requests.Response = requests.post(url, json={
+            "query": query,
+            "params": [symbol.upper()],
+            "token": os.environ['TOKEN']
+        })
 
-        for item in results:
-            pretty_results["exchange"] = item[0]
+        if response.status_code != 200:
+            logging.error(f"Error: {response.status_code}")
+            api_response = generate_response(500, {"msg": f"Error: {response.status_code}"})
+            return api_response
 
-        print(f"results are {pretty_results}")
+        data = response.json()
 
-        # Clean up
-        cursor.close()
-        connection.close()
+        logging.info(f"data is {data}")
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps(pretty_results)
-        }
+        api_response = generate_response(200, data["result"])
+
+        return api_response
     except mysql.connector.Error as e:
-        print(f"Database connection failed: {e}")
-        return {
-            'statusCode': 500,
-            'body': "Database connection failed"
+        logging.error(f"Database connection failed: {e}")
+        api_response = generate_response(500, {"msg": "Database connection failed"})
+        return api_response
+
+
+def generate_response(status_code: int, body: dict, headers: dict = None) -> dict:
+    if headers is None:
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token, Is-Test',
+            "Access-Control-Allow-Methods": "*"
         }
+    response = {
+        'statusCode': status_code,
+        'headers': headers,
+        'body': json.dumps(body)
+    }
+    return response

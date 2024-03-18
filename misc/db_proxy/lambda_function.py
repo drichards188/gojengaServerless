@@ -1,5 +1,5 @@
 import json
-
+import logging
 import mysql.connector
 import os
 
@@ -7,19 +7,34 @@ from mysql.connector import errorcode
 
 base_token = os.environ['TOKEN']
 
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+
 
 def lambda_handler(event, context):
-    body = json.loads(event["body"])
-    query = body["query"]
-    user_token = body["token"]
+    if "body" in event:
+        body = json.loads(event["body"])
 
-    if user_token != base_token:
-        return {
-            'statusCode': 401,
-            'body': "Token unauthorized"
-        }
+        if "query" in body and "token" in body:
+            query = body["query"]
+            client_token = body["token"]
+        else:
+            api_response = generate_response(400, {"msg": "Bad request. Missing reqs"})
+            return api_response
+    else:
+        api_response = generate_response(400, {"msg": "Bad request. Missing body"})
+        return api_response
 
-    print(f"query is {query}")
+    if "params" in body:
+        params = body["params"]
+    else:
+        logging.critical("No params in body")
+
+    if client_token != base_token:
+        api_response = generate_response(401, {"msg": "Token unauthorized"})
+        return api_response
+
+    logging.info(f"query is {query}")
 
     # Connection configuration
     config = {
@@ -38,58 +53,62 @@ def lambda_handler(event, context):
 
         if query_verb == 'INSERT':
             # if insert query special execution function
-            exec_response = execute_insert_query(connection, query)
+            exec_response = execute_insert_query(connection, query, params)
 
             if exec_response:
-                return {
-                    'statusCode': 200,
-                    'body': "Query executed successfully"
-                }
+                api_response = generate_response(200, {"msg": "Query executed successfully"})
+                return api_response
+        elif params == []:
+            cursor = connection.cursor()
 
-        cursor = connection.cursor()
+            cursor.execute(query)
+            results = cursor.fetchall()
+        else:
+            cursor = connection.cursor()
 
-        stmt = f"{query}"
+            cursor.execute(query, params)
+            results = cursor.fetchall()
 
-        cursor.execute(stmt)
-        results = cursor.fetchall()
-
-        if len(results) == 1:
+        if len(results) > 1:
+            pretty_results = []
+            print(f"results are {results}")
+            for item in results:
+                pretty_results.append(item[0])
+        elif type(results[0]) == tuple and len(results[0]) > 1:
+            pretty_results = results[0]
+        elif len(results[0]) == 1:
             pretty_results = {}
-            pretty_results["result"] = results[0]
+            pretty_results["db_result"] = results[0][0]
         else:
             pretty_results = []
             print(f"results are {results}")
             for item in results:
                 pretty_results.append(item[0])
 
-        print(f"--> pretty_results are {pretty_results}")
+        logging.info(f"--> pretty_results are {pretty_results}")
 
         # Clean up
         cursor.close()
         connection.close()
+        api_response = generate_response(200, {"result": pretty_results})
+        return api_response
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps(pretty_results)
-        }
     except mysql.connector.Error as err:
         if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
             print("Something is wrong with your user name or password")
         elif err.errno == errorcode.ER_BAD_DB_ERROR:
             print("Database does not exist")
         print(f"Database connection failed: {err}")
-        return {
-            'statusCode': 500,
-            'body': "Database connection failed"
-        }
+        api_response = generate_response(500, {"msg": f"Database connection failed: {err}"})
+        return api_response
 
 
-def execute_insert_query(connection, query):
+def execute_insert_query(connection, query, params):
     try:
         cursor = connection.cursor()
 
         # Execute the query
-        cursor.execute(query)
+        cursor.execute(query, params)
 
         # Commit the transaction
         connection.commit()
@@ -100,3 +119,18 @@ def execute_insert_query(connection, query):
     except Exception as e:
         print(f"Error: {e}")
         return False
+
+
+def generate_response(status_code: int, body: dict, headers: dict = None) -> dict:
+    if headers is None:
+        headers = {
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Headers": 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token, Is-Test',
+            "Access-Control-Allow-Methods": "*"
+        }
+    response = {
+        'statusCode': status_code,
+        'headers': headers,
+        'body': json.dumps(body)
+    }
+    return response
