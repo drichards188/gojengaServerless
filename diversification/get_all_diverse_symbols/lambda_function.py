@@ -20,9 +20,8 @@ def lambda_handler(event, context):
     try:
         connection = mysql.connector.connect(**config)
         cursor = connection.cursor()
-        table_name = "sharpe_calc"
 
-        stmt = f"SELECT symbol FROM {table_name};"
+        stmt = f"SELECT symbol FROM sharpe_calc;"
         cursor.execute(stmt)
         results = cursor.fetchall()
         pretty_results = []

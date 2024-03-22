@@ -69,11 +69,28 @@ def lambda_handler(event, context):
             cursor.execute(query, params)
             results = cursor.fetchall()
 
+            # Clean up
+            cursor.close()
+            connection.close()
+
         if len(results) > 1:
+            if results[0][1] != None and results[0][1] != "":
+                pretty_results = []
+                for item in results:
+                    pretty_results.append(item)
+                return generate_response(200, {"result": pretty_results})
+
+            seperated_query = query.split(" ")
             pretty_results = []
+            if seperated_query[1] == "*":
+                pretty_results = []
+                for item in results:
+                    pretty_results.append(item)
+            else:
+                for item in results:
+                    pretty_results.append(item[0])
             print(f"results are {results}")
-            for item in results:
-                pretty_results.append(item[0])
+
         elif type(results[0]) == tuple and len(results[0]) > 1:
             pretty_results = results[0]
         elif len(results[0]) == 1:
@@ -87,9 +104,7 @@ def lambda_handler(event, context):
 
         logging.info(f"--> pretty_results are {pretty_results}")
 
-        # Clean up
-        cursor.close()
-        connection.close()
+
         api_response = generate_response(200, {"result": pretty_results})
         return api_response
 
