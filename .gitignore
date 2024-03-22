@@ -9,3 +9,5 @@
 /misc/db_proxy/package/
 /auth/login/my_deployment_package.zip
 /diversification/get_symbol_sector/my_deployment_package.zip
+/diversification/get_sector_comp/my_deployment_package.zip
+/diversification/get_diverse_recomend/my_deployment_package.zip
