@@ -70,10 +70,18 @@ def lambda_handler(event, context):
             results = cursor.fetchall()
 
         if len(results) > 1:
+            seperated_query = query.split(" ")
             pretty_results = []
+            if seperated_query[1] == "*":
+                pretty_results = []
+                for item in results:
+                    pretty_results.append(item)
+            else:
+                for item in results:
+                    pretty_results.append(item[0])
             print(f"results are {results}")
-            for item in results:
-                pretty_results.append(item[0])
+
+
         elif type(results[0]) == tuple and len(results[0]) > 1:
             pretty_results = results[0]
         elif len(results[0]) == 1:
