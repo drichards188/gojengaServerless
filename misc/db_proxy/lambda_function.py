@@ -81,26 +81,34 @@ def lambda_handler(event, context):
                 return generate_response(200, {"result": pretty_results})
 
             seperated_query = query.split(" ")
-            pretty_results = []
+            raw_results = []
             if seperated_query[1] == "*":
-                pretty_results = []
+                raw_results = []
                 for item in results:
-                    pretty_results.append(item)
+                    raw_results.append(item)
             else:
                 for item in results:
-                    pretty_results.append(item[0])
+                    raw_results.append(item[0])
+
+            pretty_results = {}
+            pretty_results["db_result"] = raw_results
             print(f"results are {results}")
 
         elif type(results[0]) == tuple and len(results[0]) > 1:
-            pretty_results = results[0]
+            raw_result = results[0]
+            pretty_results = {}
+            pretty_results["db_result"] = raw_result
         elif len(results[0]) == 1:
             pretty_results = {}
             pretty_results["db_result"] = results[0][0]
         else:
-            pretty_results = []
+            raw_results = []
             print(f"results are {results}")
             for item in results:
-                pretty_results.append(item[0])
+                raw_results.append(item[0])
+
+            pretty_results = {}
+            pretty_results["db_result"] = raw_results
 
         logging.info(f"--> pretty_results are {pretty_results}")
 
