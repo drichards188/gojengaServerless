@@ -9,21 +9,21 @@ logging.basicConfig(level=logging.INFO)
 
 def lambda_handler(event, context):
     logging.info(f"event is {event}")
-    # username = event["pathParameters"]["username"]
-    username = "david"
+    username = event["pathParameters"]["username"]
+    # username = "david"
     logging.info(f"symbol is {username}")
 
     try:
         url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
-        query = f"""SELECT a.name
-                FROM assets a
-                JOIN portfolio p ON a.id = p.asset_id
-                WHERE p.user_id = (
-                    SELECT id
-                    FROM app_users
-                    WHERE username = %s
-                );"""
+        query = f"""SELECT a.name, p.quantity
+                    FROM assets a
+                    JOIN portfolio p ON a.id = p.asset_id
+                    WHERE p.user_id = (
+                        SELECT id
+                        FROM app_users
+                        WHERE username = %s
+                    );"""
 
         response: requests.Response = requests.post(url, json={
             "query": query,
