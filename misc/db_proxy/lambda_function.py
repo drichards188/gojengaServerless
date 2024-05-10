@@ -51,7 +51,7 @@ def lambda_handler(event, context):
 
         query_verb = query.split(" ")[0].upper()
 
-        if query_verb == 'INSERT':
+        if query_verb == 'INSERT' or query_verb == 'UPDATE' or query_verb == 'DELETE':
             # if insert query special execution function
             exec_response = execute_insert_query(connection, query, params)
 

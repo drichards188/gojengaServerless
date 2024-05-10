@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     try:
         url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
-        query = f"""SELECT a.name, p.quantity
+        query = f"""SELECT a.symbol, p.quantity
                     FROM assets a
                     JOIN portfolio p ON a.id = p.asset_id
                     WHERE p.user_id = (
@@ -43,7 +43,12 @@ def lambda_handler(event, context):
         result = data.get("result")
         db_result = result.get("db_result")
 
-        api_response = generate_response(200, {"name": db_result})
+        if len(db_result) % 2 == 0:
+            portfolio = []
+            for i in range(0, len(db_result), 2):
+                portfolio.append({"symbol": db_result[i], "quantity": db_result[i + 1]})
+
+        api_response = generate_response(200, {"portfolio": portfolio})
 
         return api_response
     except Exception as e:
