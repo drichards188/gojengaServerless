@@ -10,7 +10,6 @@ logging.basicConfig(level=logging.INFO)
 def lambda_handler(event, context):
     logging.info(f"event is {event}")
 
-
     body = json.loads(event["body"])
 
     username: str = ""

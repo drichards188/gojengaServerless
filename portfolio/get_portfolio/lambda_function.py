@@ -40,13 +40,18 @@ def lambda_handler(event, context):
 
         logging.info(f"data is {data}")
 
-        result = data.get("result")
-        db_result = result.get("db_result")
+        db_result = data.get("db_result")
 
         if len(db_result) % 2 == 0:
             portfolio = []
-            for i in range(0, len(db_result), 2):
-                portfolio.append({"symbol": db_result[i], "quantity": db_result[i + 1]})
+            coin_keys = []
+            coin_quantities = []
+            for coin in db_result:
+                coin_keys.append(coin[0])
+                coin_quantities.append(coin[1])
+
+            for i in range(len(coin_keys)):
+                portfolio.append({"symbol": coin_keys[i], "quantity": coin_quantities[i]})
 
         api_response = generate_response(200, {"portfolio": portfolio})
 

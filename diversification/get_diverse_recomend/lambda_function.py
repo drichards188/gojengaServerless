@@ -39,7 +39,7 @@ def lambda_handler(event, context):
 
         logging.info(f"data is {data}")
 
-        symbols_desc = data.get("result")
+        symbols_desc = data.get("db_result")
 
         recommendations = symbols_desc[:3]
         map_recs = []

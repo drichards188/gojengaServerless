@@ -78,7 +78,7 @@ def lambda_handler(event, context):
                 pretty_results = []
                 for item in results:
                     pretty_results.append(item)
-                return generate_response(200, {"result": pretty_results})
+                return generate_response(200, {"db_result": pretty_results})
 
             seperated_query = query.split(" ")
             raw_results = []
