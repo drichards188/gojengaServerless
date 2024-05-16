@@ -117,7 +117,7 @@ def lambda_handler(event, context):
         logging.info(f"--> pretty_results are {pretty_results}")
 
 
-        api_response = generate_response(200, {"result": pretty_results})
+        api_response = generate_response(200,  pretty_results)
         return api_response
 
     except mysql.connector.Error as err:

@@ -48,12 +48,38 @@ def lambda_handler(event, context):
                 break
 
         if order_type == "sell":
-            if current_quantity >= quantity:
+            if current_quantity - quantity == 0:
+                url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
+
+                query = f"""DELETE p FROM portfolio p
+                        JOIN app_users u ON p.user_id = u.id
+                        JOIN assets a ON p.asset_id = a.id
+                        WHERE u.username = %s AND a.name = %s;"""
+
+                response: requests.Response = requests.post(url, json={
+                    "query": query,
+                    "params": [username, asset],
+                    "token": os.environ['TOKEN']
+                })
+
+                if response.status_code != 200:
+                    logging.error(f"Error: {response.status_code}")
+                    api_response = generate_response(500, {"msg": f"Error: {response.status_code}"})
+                    return api_response
+
+                data = response.json()
+
+                logging.info(f"data is {data}")
+
+                api_response = generate_response(200, data)
+                return api_response
+            elif current_quantity >= quantity:
                 current_quantity -= quantity
                 if current_quantity < 0:
                     logging.error(f"Error: Not enough owned")
                     api_response = generate_response(500, {"msg": f"Error: {response.status_code}"})
                     return api_response
+
         elif order_type == "buy":
             current_quantity += quantity
 

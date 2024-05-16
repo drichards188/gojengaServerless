@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO)
 
 def lambda_handler(event, context):
     logging.info(f"event is {event}")
-    username = event["pathParameters"]["username"]
-    # username = "eric"
+    # username = event["pathParameters"]["username"]
+    username = "charlee"
     logging.info(f"symbol is {username}")
 
     try:
@@ -50,16 +50,22 @@ def lambda_handler(event, context):
             portfolio = []
             coin_keys = []
             coin_quantities = []
-            for coin in db_result:
-                coin_keys.append(coin[0])
-                coin_quantities.append(coin[1])
 
-            for i in range(len(coin_keys)):
-                portfolio.append({"symbol": coin_keys[i], "quantity": coin_quantities[i]})
+            if len(db_result) == 2:
+                coin_keys.append(db_result[0])
+                coin_quantities.append(db_result[1])
+                portfolio.append({"symbol": coin_keys[0], "quantity": coin_quantities[0]})
+            else:
+                for coin in db_result:
+                    coin_keys.append(coin[0])
+                    coin_quantities.append(coin[1])
+
+                for i in range(len(coin_keys)):
+                    portfolio.append({"symbol": coin_keys[i], "quantity": coin_quantities[i]})
 
         api_response = generate_response(200, {"portfolio": portfolio})
-
         return api_response
+
     except Exception as e:
         logging.error(f"Error: {e}")
         api_response = generate_response(500, {"msg": f"Error: {e}"})
