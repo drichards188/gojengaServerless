@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO)
 
 def lambda_handler(event, context):
     logging.info(f"event is {event}")
-    # username = event["pathParameters"]["username"]
-    username = "charlee"
+    username = event["pathParameters"]["username"]
+    # username = "david"
     logging.info(f"symbol is {username}")
 
     try:
