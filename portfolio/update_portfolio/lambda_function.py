@@ -57,6 +57,56 @@ def lambda_handler(event, context):
         elif order_type == "buy":
             current_quantity += quantity
 
+        #     need to check if asset already owned or if buying for first time
+        url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
+
+        query = f"""SELECT p.*
+                FROM portfolio p
+                JOIN app_users u ON p.user_id = u.id
+                JOIN assets a ON p.asset_id = a.id
+                WHERE u.username = %s AND a.name = %s;"""
+
+        response: requests.Response = requests.post(url, json={
+            "query": query,
+            "params": [username, asset],
+            "token": os.environ['TOKEN']
+        })
+
+        if response.status_code != 200:
+            logging.error(f"Error: {response.status_code}")
+            api_response = generate_response(500, {"msg": f"Error: {response.status_code}"})
+            return api_response
+
+        data = response.json()
+
+        logging.info(f"data is {data}")
+
+        if data.get("db_result") == "No results found":
+            url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
+
+            query = f"""INSERT INTO portfolio (user_id, asset_id, quantity)
+                    SELECT u.id, a.id, %s
+                    FROM app_users u, assets a
+                    WHERE u.username = %s AND a.name = %s;"""
+
+            response: requests.Response = requests.post(url, json={
+                "query": query,
+                "params": [quantity, username, asset],
+                "token": os.environ['TOKEN']
+            })
+
+            if response.status_code != 200:
+                logging.error(f"Error: {response.status_code}")
+                api_response = generate_response(500, {"msg": f"Error: {response.status_code}"})
+                return api_response
+
+            data = response.json()
+
+            logging.info(f"data is {data}")
+
+            api_response = generate_response(200, data)
+            return api_response
+
         url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
         query = f"""UPDATE portfolio p
@@ -105,3 +155,21 @@ def generate_response(status_code: int, body: dict, headers: dict = None) -> dic
         'body': json.dumps(body)
     }
     return response
+
+def make_db_call(query: str, params: list) -> dict:
+    url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
+
+    response: requests.Response = requests.post(url, json={
+        "query": query,
+        "params": params,
+        "token": os.environ['TOKEN']
+    })
+
+    if response.status_code != 200:
+        logging.error(f"Error: {response.status_code}")
+        api_response = generate_response(500, {"msg": f"Error: {response.status_code}"})
+        return api_response
+
+    data = response.json()
+
+    logging.info(f"data is {data}")

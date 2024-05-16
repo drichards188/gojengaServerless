@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 def lambda_handler(event, context):
     logging.info(f"event is {event}")
     username = event["pathParameters"]["username"]
-    # username = "david"
+    # username = "eric"
     logging.info(f"symbol is {username}")
 
     try:
@@ -41,6 +41,10 @@ def lambda_handler(event, context):
         logging.info(f"data is {data}")
 
         db_result = data.get("db_result")
+
+        if db_result == "No results found":
+            api_response = generate_response(200, {"portfolio": []})
+            return api_response
 
         if len(db_result) % 2 == 0:
             portfolio = []

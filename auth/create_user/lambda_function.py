@@ -47,54 +47,6 @@ def lambda_handler(event, context):
             print(f"Error: {response.status_code}")
             return generate_response(500, {"msg": f"Error: code is {response.status_code}"})
 
-        # get new user id number
-        url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
-
-        query = f"SELECT app_users.id FROM app_users WHERE username = %s;"
-        query_params = [username]
-
-        response: requests.Response = requests.post(url, json={
-            "query": query,
-            "params": query_params,
-            "token": os.environ['TOKEN']
-        })
-
-        logging.info(f"response received {response}")
-
-        if response.status_code != 200:
-            print(f"Error: {response.status_code}")
-            return generate_response(500, {"msg": f"Error: code is {response.status_code}"})
-
-        data = response.json()
-
-        user_id = data['result']['db_result']
-
-
-        # create record in portfolio table
-        url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
-
-        query = f"INSERT INTO app_users(username, password) VALUES (%s, %s);"
-        query_params = (username, str_password)
-
-        response: requests.Response = requests.post(url, json={
-            "query": query,
-            "params": query_params,
-            "token": os.environ['TOKEN']
-        })
-
-        logging.info(f"response received {response}")
-
-        if response.status_code != 200:
-            print(f"Error: {response.status_code}")
-            return generate_response(500, {"msg": f"Error: code is {response.status_code}"})
-
-        if response.text == "Query executed successfully":
-            data = {"result": "User created"}
-        else:
-            data = response.json()
-
-        logging.info(f"data is {data}")
-
         data = response.json()
 
         api_response = generate_response(200, data)

@@ -73,6 +73,10 @@ def lambda_handler(event, context):
             cursor.close()
             connection.close()
 
+        if results == []:
+            api_response = generate_response(200, {"db_result": "No results found"})
+            return api_response
+
         if len(results) > 1:
             if results[0][1] != None and results[0][1] != "":
                 pretty_results = []
