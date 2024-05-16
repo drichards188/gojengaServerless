@@ -9,8 +9,8 @@ logging.basicConfig(level=logging.INFO)
 
 def lambda_handler(event, context):
     logging.info(f"event is {event}")
-    username = event["pathParameters"]["username"]
-    # username = "charlee"
+    # username = event["pathParameters"]["username"]
+    username = "charlee"
     logging.info(f"symbol is {username}")
 
     try:
@@ -51,10 +51,11 @@ def lambda_handler(event, context):
             coin_keys = []
             coin_quantities = []
 
-            if len(db_result) == 2:
+            if isinstance(db_result[0], str):
                 coin_keys.append(db_result[0])
                 coin_quantities.append(db_result[1])
                 portfolio.append({"symbol": coin_keys[0], "quantity": coin_quantities[0]})
+
             else:
                 for coin in db_result:
                     coin_keys.append(coin[0])
