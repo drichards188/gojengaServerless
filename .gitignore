@@ -12,3 +12,6 @@
 /diversification/get_sector_comp/my_deployment_package.zip
 /diversification/get_diverse_recomend/my_deployment_package.zip
 /misc/get_symbol_name/my_deployment_package.zip
+/portfolio/get_portfolio/my_deployment_package.zip
+/portfolio/update_portfolio/my_deployment_package.zip
+/main.py

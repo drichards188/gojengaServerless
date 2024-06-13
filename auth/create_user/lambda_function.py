@@ -29,6 +29,7 @@ def lambda_handler(event, context):
 
         logging.info("password hashed")
 
+        # create user in account management tables
         url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
         query = f"INSERT INTO app_users(username, password) VALUES (%s, %s);"
@@ -46,12 +47,7 @@ def lambda_handler(event, context):
             print(f"Error: {response.status_code}")
             return generate_response(500, {"msg": f"Error: code is {response.status_code}"})
 
-        if response.text == "Query executed successfully":
-            data = {"result": "User created"}
-        else:
-            data = response.json()
-
-        logging.info(f"data is {data}")
+        data = response.json()
 
         api_response = generate_response(200, data)
 

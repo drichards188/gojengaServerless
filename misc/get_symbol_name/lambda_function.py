@@ -32,8 +32,7 @@ def lambda_handler(event, context):
 
         logging.info(f"data is {data}")
 
-        result = data.get("result")
-        db_result = result.get("db_result")
+        db_result = data.get("db_result")
 
         api_response = generate_response(200, {"name": db_result})
 

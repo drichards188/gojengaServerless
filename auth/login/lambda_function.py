@@ -38,7 +38,7 @@ def lambda_handler(event, context):
 
         logging.info(f"data is {data}")
 
-        db_password = data['result']['db_result'][1]
+        db_password = data['db_result'][1]
 
         bytes_password = bytes(password, 'utf-8')
         bytes_db_password = bytes(db_password, 'utf-8')

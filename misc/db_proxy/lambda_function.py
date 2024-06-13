@@ -51,7 +51,7 @@ def lambda_handler(event, context):
 
         query_verb = query.split(" ")[0].upper()
 
-        if query_verb == 'INSERT':
+        if query_verb == 'INSERT' or query_verb == 'UPDATE' or query_verb == 'DELETE':
             # if insert query special execution function
             exec_response = execute_insert_query(connection, query, params)
 
@@ -73,12 +73,16 @@ def lambda_handler(event, context):
             cursor.close()
             connection.close()
 
+        if results == []:
+            api_response = generate_response(200, {"db_result": "No results found"})
+            return api_response
+
         if len(results) > 1:
             if results[0][1] != None and results[0][1] != "":
                 pretty_results = []
                 for item in results:
                     pretty_results.append(item)
-                return generate_response(200, {"result": pretty_results})
+                return generate_response(200, {"db_result": pretty_results})
 
             seperated_query = query.split(" ")
             raw_results = []
@@ -113,7 +117,7 @@ def lambda_handler(event, context):
         logging.info(f"--> pretty_results are {pretty_results}")
 
 
-        api_response = generate_response(200, {"result": pretty_results})
+        api_response = generate_response(200,  pretty_results)
         return api_response
 
     except mysql.connector.Error as err:

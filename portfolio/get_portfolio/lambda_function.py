@@ -16,7 +16,7 @@ def lambda_handler(event, context):
     try:
         url = "https://rjeu9nicn3.execute-api.us-east-2.amazonaws.com/dev/proxy"
 
-        query = f"""SELECT a.name, p.quantity
+        query = f"""SELECT a.symbol, p.quantity
                     FROM assets a
                     JOIN portfolio p ON a.id = p.asset_id
                     WHERE p.user_id = (
@@ -40,12 +40,33 @@ def lambda_handler(event, context):
 
         logging.info(f"data is {data}")
 
-        result = data.get("result")
-        db_result = result.get("db_result")
+        db_result = data.get("db_result")
 
-        api_response = generate_response(200, {"name": db_result})
+        if db_result == "No results found":
+            api_response = generate_response(200, {"portfolio": []})
+            return api_response
 
+        if len(db_result) % 2 == 0:
+            portfolio = []
+            coin_keys = []
+            coin_quantities = []
+
+            if isinstance(db_result[0], str):
+                coin_keys.append(db_result[0])
+                coin_quantities.append(db_result[1])
+                portfolio.append({"symbol": coin_keys[0], "quantity": coin_quantities[0]})
+
+            else:
+                for coin in db_result:
+                    coin_keys.append(coin[0])
+                    coin_quantities.append(coin[1])
+
+                for i in range(len(coin_keys)):
+                    portfolio.append({"symbol": coin_keys[i], "quantity": coin_quantities[i]})
+
+        api_response = generate_response(200, {"portfolio": portfolio})
         return api_response
+
     except Exception as e:
         logging.error(f"Error: {e}")
         api_response = generate_response(500, {"msg": f"Error: {e}"})
